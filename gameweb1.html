@@ -1,0 +1,108 @@
+<canvas id='ctx' width='500' height='500' style='border:1px solid #000'></canvas>
+
+<script>
+    var ctx=document.getElementById('ctx').getContext('2d');
+    var message='Bouncing';
+    var HEIGHT=500;
+    var WIDTH=500;
+    var timeWhenGameStart=Date.now();
+
+    ctx.font='30px Arial';
+
+    var player={
+        x:50,
+        spdX:20,
+        y:40,
+        spdY:5,
+        name:'P',
+        hp:10,
+    };
+
+    var enemyList={};
+
+    getDistanceBetweenEntity=function (entity1,entity2){
+        var vx=entity1.x-entity2.x;
+        var vy=entity1.y-entity2.y;
+        return Math.sqrt(vx*vx+vy*vy);
+    }
+
+    function testCollisionEntity(entity1,entity2){
+        var distance=getDistanceBetweenEntity(entity1,entity2);
+        return distance<10;
+    }
+
+    Enemy=function (id,x,y,spdX,spdY){
+        var enemy3={
+            x:x,
+            spdX:spdX, 
+            y:y,
+            spdY:spdY,
+            name:'E',
+            id:id,
+        };
+        enemyList[id]=enemy3;
+    }
+
+    document.onmousemove=function(mouse){
+        var mouseX=mouse.clientX;
+        var mouseY=mouse.clientY;
+
+        player.x=mouseX;
+        player.y=mouseY;
+    }
+
+    updateEntity=function (something){
+        //entity
+        updateEntityPosition(something);
+        drawEntity(something);
+
+        if(something.x<0||something.x>WIDTH){
+            //console.log(message);
+            something.spdX=-something.spdX;
+        }
+
+        if(something.y>HEIGHT||something.y<0){
+            //console.log(message);
+            something.spdY=-something.spdY;
+        }
+    }
+
+    updateEntityPosition=function(something){
+        something.x+=something.spdX;
+        something.y+=something.spdY;
+    }
+
+    drawEntity=function(something){
+        ctx.fillText(something.name,something.x,something.y);
+    }
+
+    update=function (){
+        ctx.clearRect(0,0,WIDTH,HEIGHT);
+        for(var key in enemyList){
+            updateEntity(enemyList[key]);
+
+            var isColliding=testCollisionEntity(player,enemyList[key]);
+            if(isColliding){
+                player.hp=player.hp-1;
+                if(player.hp<=0){
+                    var timeSurvived=Date.now()-timeWhenGameStart;
+
+                    console.log('You Lose ! YouSurvived for '+timeSurvived+"ms.");
+                    timeWhenGameStart=Date.now();
+                    player.hp=10;
+                }
+            }
+        }
+        
+        drawEntity(player);
+        ctx.fillText(player.hp+" Hp",0,30);
+    }
+
+    
+    setInterval(update,40);
+
+    Enemy('E1',150,350,10,15);
+    Enemy('E2',250,350,10,-15);
+    Enemy('E3',250,150,10,-8);
+
+</script>
